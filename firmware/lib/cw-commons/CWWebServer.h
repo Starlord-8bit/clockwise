@@ -135,6 +135,18 @@ struct ClockwiseWebServer
         ClockwiseParams::getInstance()->i2cSpeed = value.toInt();
       }  else if (key == ClockwiseParams::getInstance()->PREF_E_PIN) {
         ClockwiseParams::getInstance()->E_pin = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_BRIGHT_METHOD) {
+        ClockwiseParams::getInstance()->brightMethod = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_NIGHT_START_H) {
+        ClockwiseParams::getInstance()->nightStartH = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_NIGHT_START_M) {
+        ClockwiseParams::getInstance()->nightStartM = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_NIGHT_END_H) {
+        ClockwiseParams::getInstance()->nightEndH = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_NIGHT_END_M) {
+        ClockwiseParams::getInstance()->nightEndM = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_NIGHT_BRIGHT) {
+        ClockwiseParams::getInstance()->nightBright = value.toInt();
       }
       ClockwiseParams::getInstance()->save();
       client.println("HTTP/1.0 204 No Content");
@@ -175,6 +187,12 @@ struct ClockwiseWebServer
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_DRIVER, ClockwiseParams::getInstance()->driver);
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_I2CSPEED, ClockwiseParams::getInstance()->i2cSpeed);
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_E_PIN, ClockwiseParams::getInstance()->E_pin);
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_BRIGHT_METHOD, ClockwiseParams::getInstance()->brightMethod);
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_NIGHT_START_H, ClockwiseParams::getInstance()->nightStartH);
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_NIGHT_START_M, ClockwiseParams::getInstance()->nightStartM);
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_NIGHT_END_H, ClockwiseParams::getInstance()->nightEndH);
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_NIGHT_END_M, ClockwiseParams::getInstance()->nightEndM);
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_NIGHT_BRIGHT, ClockwiseParams::getInstance()->nightBright);
 
     client.printf(HEADER_TEMPLATE_S, "CW_FW_VERSION", CW_FW_VERSION);
     client.printf(HEADER_TEMPLATE_S, "CW_FW_NAME", CW_FW_NAME);

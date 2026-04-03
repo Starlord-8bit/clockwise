@@ -102,6 +102,14 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
           property: "ntpServer"
         },
         {
+          title: "Brightness Method",
+          description: "How display brightness is controlled. <b>Auto-LDR</b>: adjusts based on ambient light sensor. <b>Time-based</b>: uses day/night schedule below. <b>Fixed</b>: constant brightness value above.",
+          formInput: "<select name='brightMethod' id='brightMethod'><option value='0'" + (settings.brightmethod == 0 ? " selected='selected'" : "") + ">Auto (LDR sensor)</option><option value='1'" + (settings.brightmethod == 1 ? " selected='selected'" : "") + ">Time-based (schedule)</option><option value='2'" + (settings.brightmethod == 2 ? " selected='selected'" : "") + ">Fixed</option></select>",
+          icon: "fa-adjust",
+          save: "updatePreference('brightMethod', brightMethod.value)",
+          property: "brightMethod"
+        },
+        {
           title: "Automatic Bright",
           description: "Inform the values read by the LDR when the room is dark (min value) and bright (max value). Range 0 - 4095",
           formInput: "<input id='autoBrightMin' class='w3-input w3-light-grey w3-cell w3-margin-right' name='autoBrightMin' style='width:45%;' type='number' min='0' max='4095' placeholder='Min value' value='" + settings.autobrightmin + "'>" + 
@@ -109,6 +117,14 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
           icon: "fa-sun-o",
           save: "updatePreference('autoBright', autoBrightMin.value.padStart(4, '0') + ',' + autoBrightMax.value.padStart(4, '0'))",
           property: "autoBright"
+        },
+        {
+          title: "Night Schedule",
+          description: "Used when Brightness Method is set to <b>Time-based</b>. The clock dims to Night Brightness between these hours.",
+          formInput: "Start: <input id='nightStartH' class='w3-input w3-light-grey w3-cell' style='width:60px;' type='number' min='0' max='23' value='" + settings.nightstarth + "'> : <input id='nightStartM' class='w3-input w3-light-grey w3-cell' style='width:60px;' type='number' min='0' max='59' value='" + settings.nightstartm + "'><br>End: <input id='nightEndH' class='w3-input w3-light-grey w3-cell' style='width:60px;' type='number' min='0' max='23' value='" + settings.nightendh + "'> : <input id='nightEndM' class='w3-input w3-light-grey w3-cell' style='width:60px;' type='number' min='0' max='59' value='" + settings.nightendm + "'><br>Night Brightness (0-255): <input id='nightBright' class='w3-input w3-light-grey' type='number' min='0' max='255' value='" + settings.nightbright + "'>",
+          icon: "fa-moon-o",
+          save: "updatePreference('nightStartH', nightStartH.value); updatePreference('nightStartM', nightStartM.value); updatePreference('nightEndH', nightEndH.value); updatePreference('nightEndM', nightEndM.value); updatePreference('nightBright', nightBright.value)",
+          property: "nightSchedule"
         },
         {
           title: "LDR Pin",

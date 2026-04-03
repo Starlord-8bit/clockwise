@@ -26,6 +26,27 @@ bool autoBrightEnabled;
 long autoBrightMillis = 0;
 uint8_t currentBrightSlot = -1;
 
+/**
+ * Returns true if the current time falls inside the configured night window.
+ * Night window wraps midnight: e.g. 22:00–07:00 is correctly handled.
+ */
+bool isNightTime() {
+  int h = cwDateTime.getHours();
+  int m = cwDateTime.getMinutes();
+  int nowMins  = h * 60 + m;
+  auto* p = ClockwiseParams::getInstance();
+  int startMins = p->nightStartH * 60 + p->nightStartM;
+  int endMins   = p->nightEndH   * 60 + p->nightEndM;
+
+  if (startMins <= endMins) {
+    // Same-day window (e.g. 02:00–06:00)
+    return nowMins >= startMins && nowMins < endMins;
+  } else {
+    // Wraps midnight (e.g. 22:00–07:00)
+    return nowMins >= startMins || nowMins < endMins;
+  }
+}
+
 bool isValidI2SSpeed(uint32_t speed) {
   return speed == 8000000 || speed == 16000000 || speed == 20000000;
 }
@@ -82,28 +103,35 @@ void displaySetup(bool swapBlueGreen, bool swapBlueRed, uint8_t displayBright, u
 
 void automaticBrightControl()
 {
-  if (autoBrightEnabled) {
-    if (millis() - autoBrightMillis > 3000)
-    {
-      int16_t currentValue = analogRead(ClockwiseParams::getInstance()->ldrPin);
+  auto* p = ClockwiseParams::getInstance();
+  uint8_t method = p->brightMethod;
 
-      uint16_t ldrMin = ClockwiseParams::getInstance()->autoBrightMin;
-      uint16_t ldrMax = ClockwiseParams::getInstance()->autoBrightMax;
+  // Method 2: fixed — nothing to do, brightness set once at startup
+  if (method == 2) return;
 
-      const uint8_t minBright = (currentValue < ldrMin ? MIN_BRIGHT_DISPLAY_OFF : MIN_BRIGHT_DISPLAY_ON);
-      uint8_t maxBright = ClockwiseParams::getInstance()->displayBright;
+  if (millis() - autoBrightMillis < 3000) return;
+  autoBrightMillis = millis();
 
-      uint8_t slots = 10; //10 slots
-      uint8_t mapLDR = map(currentValue > ldrMax ? ldrMax : currentValue, ldrMin, ldrMax, 1, slots);
-      uint8_t mapBright = map(mapLDR, 1, slots, minBright, maxBright);
-
-      // Serial.printf("LDR: %d, mapLDR: %d, Bright: %d\n", currentValue, mapLDR, mapBright);
-      if(abs(currentBrightSlot - mapLDR ) >= 2 || mapBright == 0){
-           dma_display->setBrightness8(mapBright);
-           currentBrightSlot=mapLDR;
-          //  Serial.printf("setBrightness: %d , Update currentBrightSlot to %d\n", mapBright, mapLDR);
-      }
-      autoBrightMillis = millis();
+  if (method == 0 && p->autoBrightMax > 0) {
+    // Method 0: auto-LDR (original behaviour)
+    int16_t currentValue = analogRead(p->ldrPin);
+    uint16_t ldrMin = p->autoBrightMin;
+    uint16_t ldrMax = p->autoBrightMax;
+    const uint8_t minBright = (currentValue < ldrMin ? MIN_BRIGHT_DISPLAY_OFF : MIN_BRIGHT_DISPLAY_ON);
+    uint8_t maxBright = p->displayBright;
+    uint8_t slots  = 10;
+    uint8_t mapLDR = map(currentValue > ldrMax ? ldrMax : currentValue, ldrMin, ldrMax, 1, slots);
+    uint8_t mapBright = map(mapLDR, 1, slots, minBright, maxBright);
+    if (abs(currentBrightSlot - mapLDR) >= 2 || mapBright == 0) {
+      dma_display->setBrightness8(mapBright);
+      currentBrightSlot = mapLDR;
+    }
+  } else if (method == 1) {
+    // Method 1: time-based — daytime = displayBright, night window = nightBright
+    uint8_t targetBright = isNightTime() ? p->nightBright : p->displayBright;
+    if (currentBrightSlot != targetBright) {
+      dma_display->setBrightness8(targetBright);
+      currentBrightSlot = targetBright;  // reuse slot variable as last-set value
     }
   }
 }
@@ -127,6 +155,11 @@ void setup()
   clockface = new Clockface(dma_display);
 
   autoBrightEnabled = (ClockwiseParams::getInstance()->autoBrightMax > 0);
+
+  // For fixed brightness method, apply the configured brightness immediately
+  if (ClockwiseParams::getInstance()->brightMethod == 2) {
+    dma_display->setBrightness8(ClockwiseParams::getInstance()->displayBright);
+  }
 
   StatusController::getInstance()->clockwiseLogo();
   delay(1000);

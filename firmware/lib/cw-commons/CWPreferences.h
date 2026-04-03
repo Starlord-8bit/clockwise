@@ -28,7 +28,15 @@ struct ClockwiseParams
     const char* const PREF_DISPLAY_ROTATION = "displayRotation";
     const char* const PREF_DRIVER = "driver";
     const char* const PREF_I2CSPEED = "i2cSpeed";
-    const char* const PREF_E_PIN = "E_pin";    
+    const char* const PREF_E_PIN = "E_pin";
+    // Brightness method
+    const char* const PREF_BRIGHT_METHOD  = "brightMethod";  // 0=auto-LDR, 1=time-based, 2=fixed
+    // Night schedule (used by time-based brightness)
+    const char* const PREF_NIGHT_START_H  = "nightStartH";
+    const char* const PREF_NIGHT_START_M  = "nightStartM";
+    const char* const PREF_NIGHT_END_H    = "nightEndH";
+    const char* const PREF_NIGHT_END_M    = "nightEndM";
+    const char* const PREF_NIGHT_BRIGHT   = "nightBright";   // brightness during night window    
 
     bool swapBlueGreen;
     bool swapBlueRed;
@@ -47,7 +55,13 @@ struct ClockwiseParams
     uint8_t displayRotation;
     uint8_t driver;
     uint32_t i2cSpeed;
-    uint8_t E_pin; 
+    uint8_t E_pin;
+    uint8_t brightMethod;   // 0=auto-LDR (default), 1=time-based, 2=fixed
+    uint8_t nightStartH;    // night window start hour   (default 22)
+    uint8_t nightStartM;    // night window start minute (default 0)
+    uint8_t nightEndH;      // night window end hour     (default 7)
+    uint8_t nightEndM;      // night window end minute   (default 0)
+    uint8_t nightBright;    // brightness during night window (default 8) 
 
     ClockwiseParams() {
         preferences.begin("clockwise", false); 
@@ -80,6 +94,12 @@ struct ClockwiseParams
         preferences.putUInt(PREF_DRIVER, driver);
         preferences.putUInt(PREF_I2CSPEED, i2cSpeed);
         preferences.putUInt(PREF_E_PIN, E_pin);
+        preferences.putUInt(PREF_BRIGHT_METHOD, brightMethod);
+        preferences.putUInt(PREF_NIGHT_START_H, nightStartH);
+        preferences.putUInt(PREF_NIGHT_START_M, nightStartM);
+        preferences.putUInt(PREF_NIGHT_END_H, nightEndH);
+        preferences.putUInt(PREF_NIGHT_END_M, nightEndM);
+        preferences.putUInt(PREF_NIGHT_BRIGHT, nightBright);
     }
 
     void load()
@@ -102,6 +122,12 @@ struct ClockwiseParams
         driver = preferences.getUInt(PREF_DRIVER, 0);
         i2cSpeed = preferences.getUInt(PREF_I2CSPEED, (uint32_t)8000000);
         E_pin = preferences.getUInt(PREF_E_PIN, 18);
+        brightMethod  = preferences.getUInt(PREF_BRIGHT_METHOD, 0);  // default: auto-LDR
+        nightStartH   = preferences.getUInt(PREF_NIGHT_START_H, 22);
+        nightStartM   = preferences.getUInt(PREF_NIGHT_START_M, 0);
+        nightEndH     = preferences.getUInt(PREF_NIGHT_END_H, 7);
+        nightEndM     = preferences.getUInt(PREF_NIGHT_END_M, 0);
+        nightBright   = preferences.getUInt(PREF_NIGHT_BRIGHT, 8);
     }
 
 };
