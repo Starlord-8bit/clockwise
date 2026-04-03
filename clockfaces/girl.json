@@ -1,0 +1,64 @@
+{
+  "name": "Girl",
+  "version": 1,
+  "author": "@monsteryuan",
+  "bgColor": 23246,
+  "delay": 100,
+  "setup": [
+    {
+      "type": "datetime",
+      "content": "H",
+      "font": "big",
+      "fgColor": 65535,
+      "bgColor": 23246,
+      "x": 40,
+      "y": 16
+    },
+    {
+      "type": "datetime",
+      "content": "i",
+      "font": "big",
+      "fgColor": 65535,
+      "bgColor": 23246,
+      "x": 40,
+      "y": 36
+    },
+    {
+      "type": "datetime",
+      "content": "s",
+      "font": "medium",
+      "fgColor": 65535,
+      "bgColor": 23246,
+      "x": 49,
+      "y": 50
+    }
+  ],
+  "sprites": [
+    [
+      {
+        "image": "iVBORw0KGgoAAAANSUhEUgAAACUAAAA3CAMAAAC8XnOhAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABhQTFRF6lZYXVl3bb279L+cSCxRSWmXNhM6miJB9J7j9QAAAXxJREFUeNqklYuOhSAMRCsM0///420LihfqXbM7MT7CyfRBg3K8kfyNIl9RyjcRDcOLvCjCF9kDghcUV7OkRlJ1qVRWRsWkCydLfdJlz3tH5BOqchMfKJE6uTqxxUvVwdqh6bZSMhMTMqMmpEFpGtED6lmhX3iiwoJwinleQSmkgrUay0cvpdXIQWX9CigowLqBtPccUm+YSxPKsoAiMCfslnkRwwugB6xMKLMYk4VSmqOtYKegLKVYVFt2zu7k7oVYpuUGx+3aKcPcorlnazDZ+77bQRXPPl5a/9gitlZarxOdio+VKqFmI8hOscrxQMF3sOdlM4GNamEV1OW1Rry20VzKzOtph45Wrhqxd3UYRafiDiY7hJvT8NqpOBqiVV8pT+yy8n3MKPCasEtHNhN3gUxndRbZn+Tj+TWWY66/Ur4aEY9/UVegXyimVrnXr1Qa8IliTo1ung2Nc8A0KZzqaQ0c57Q5KkBOcVL2j/vw+ly7ed3yQgaEfgQYACNYE6WnowSnAAAAAElFTkSuQmCC"
+      },
+      {
+        "image": "iVBORw0KGgoAAAANSUhEUgAAACUAAAA3CAMAAAC8XnOhAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABhQTFRF6lZYXVl3bb279L+cSCxRSWmXNhM6miJB9J7j9QAAAXBJREFUeNq0kguOwyAMRB0ww/1v3DGYkAaTrFStFQnavIzHHzn+EvKfFAB9pVCriL5SlNIFi3wRw7svZgWeKBLCqDdObt6lB8+KDYWa5RK6pfLk8qxB1oRO5g3F2urFmOhp7U4Nxi6zzpCq/mwzGsQhGYJHX7VyRNbW2YqVqpyiZqNwbClKZFV2Qze9N0rZs9yjRhRGGFU5hUiLhdG17aDCEmbEVI+SUipkeQmmDStK6d4wcjzWGgmAb5UH1C58AgpdxSRLoTktBQh8WaLimql9saGSebtQWDKWkor2OjvVftyp1KLYinZfyHJsKDa0uha4rQvV+0RK1DNSFZved1tNa3XPtg5IvV9BV13rKMmrSLsJoQ/nibI11VPK5hhS09gZQUZ8YYpoC52x4rSfD7vaIfsmpoZie9uUj5+oM9ELhVAq1nqlwoS/UYgp7/louxm0vyalI7p5x9XH1VBRXamp6vGt9fVKL1oXXyHQ4iPAAIXeE9Wdv9ANAAAAAElFTkSuQmCC"
+      },
+      {
+        "image": "iVBORw0KGgoAAAANSUhEUgAAACUAAAA3CAMAAAC8XnOhAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABhQTFRF6lZYXVl3bb279L+cSCxRSWmXNhM6miJB9J7j9QAAAXNJREFUeNqk1IuOxCAIBVAfePn/P94L2tpWbDe7ZNKZiSeAaJrybyL9UQHyraCa5Fsx18LCvhYWKiR8V2RrwJuiSAx9uPTYYOrBb8VGQWu6BLaqTlcnu6u+2qU9ESju7ejLGkvQd6WuNKx4Kh2fN6V2kiSY57QqSVWQbKzxJEypUgHVaN4rcAQinEasMEJtYBxW1UCxZRVxRqN8IFQjSK1gRah03KxWSjPaiiyK9VBKEXFGx+c6CabxZSgLGucHCPqyFM1ytiYM/t6oYt37j9b/LBVbK036LrvyP09VPBrnia54THmjOCo25n3x5sqimqdydeZ6Vsxz9FJmX8see+fIrZx7lPgcRfqk/CkIT2hmGrlW5a8GH9WrssbOVHaOkRIc/c8I7tfdCLC/q77H/g1s319j2e/1q7JVr5j/pc5CHwphqjjXpwoL/k8hVmPmx9j9bcGYSo7ozQ8ux500mkRWJZdD9bjnui3JJdelrxB4/AgwAMWrE6BawX7AAAAAAElFTkSuQmCC"
+      },
+      {
+        "image": "iVBORw0KGgoAAAANSUhEUgAAACUAAAA3CAMAAAC8XnOhAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABhQTFRF6lZYXVl3bb279L+cSCxRSWmXNhM6miJB9J7j9QAAAXlJREFUeNqklIGOxCAIRKnC8P9/fIBWuxXbzS1prLu+DCOQ0vFN0P8oAPwFpUr8ntG0Fiz1tWApBcK7e7MGPFFGkIXeOLpdkFrYW7GhoJUugQ1FVCdXaWS9aVlJDawNmmq0QMPYlLpTg/Gd7qjGaX+2VEhYJw3B7NNCKVNlkJc1r0RkhN0RqI4ezxSzVSOn0EO1elDVhIpzZn8Z42imBQd8MdITViSUSfTJklLEUSm8UqwopTAHZpytSH35MdQSOm5P0ke4lIhrirCF7bH6cqrEBXwj7cdCiRSJe0ZGiYwnRteEfmr1RKOsTceGslKZsfBl8824u5eQCmpoAWslminmMn3lHbL/pYw7clKJJhSVipWRdIgvSl1rpeLTEKV6pNzYkPI+ZhTj9D9jN4UjGNjPfdyxvYHt96sfx1w/Un4aGY+fqJHohUIqlWu9UmnC3yjkVK/5Wfb4WlhMis9o5jvO50w6SswrxdfJ9fjU+jjii9bFVwpE/AkwACoVE64q2Wc5AAAAAElFTkSuQmCC"
+      },
+      {
+        "image": "iVBORw0KGgoAAAANSUhEUgAAACUAAAA3CAMAAAC8XnOhAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABhQTFRF6lZYXVl3bb279L+cSCxRSWmXNhM6miJB9J7j9QAAAXtJREFUeNqklAGzhCAIhEnX5f//4weYZUZXM49x7C6/WWDxTrYvIbc35CdK+YHKsITaKPxA4RNlGD5Qt5RyN4JUXeyQlVGx0IWThHHM1sRdKakyxROlUk+uyqG2UJ6xdrJOanKVOsI/noVdKVXdGb0UtlJHh7HyjBpema/OuL93KhIaIxWsog9+cUCVrL5l3nMPAwDfMooEFPBRVw+pmlFwId/cVkcTLdMYdwb0hGldhLKUYlnZSrPs9kBWl70vxSXt0fxLMqF+2FwTLmrrTjGoEg1sDRZtu3tv+aye6DO0WmgNTOaEfmpOsVM2pu2BMhN0UCLgWn0LqaB6XTyvtKxj7GWNuvIJddM6VYjEiT7GmUom5FqIaL0uJFT86M3Q8lNLozCU31R3ekj5HBPq6HGOH/f+6JZP/1+9y97sC2XH5Bvlp5Fx+xd1JHqhmErlWq9UmvCJYk7tbg5DPbW/OimM6GXtOMZtc1SAnOJJAVet69mkNdWFDIj4E2AADhoThl03RZIAAAAASUVORK5CYII="
+      }
+    ]
+  ],
+  "loop": [
+    {
+      "type": "sprite",
+      "movement": 0,
+      "sprite": 0,
+      "x": 0,
+      "y": 8
+    }
+  ]
+}
