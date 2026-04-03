@@ -28,7 +28,14 @@ struct ClockwiseParams
     const char* const PREF_DISPLAY_ROTATION = "displayRotation";
     const char* const PREF_DRIVER = "driver";
     const char* const PREF_I2CSPEED = "i2cSpeed";
-    const char* const PREF_E_PIN = "E_pin";    
+    const char* const PREF_E_PIN = "E_pin";
+    // Multi-clockface dispatcher
+    const char* const PREF_CLOCKFACE_INDEX = "clockfaceIdx";
+    const char* const PREF_FACE_CONTROL    = "faceControl";
+    const char* const PREF_AUTO_CHANGE     = "autoChange";
+    // Multi-canvas slots (up to 5)
+    const char* const PREF_CANVAS_COUNT    = "canvasCount";
+    // canvasServer_N and canvasFile_N are built dynamically    
 
     bool swapBlueGreen;
     bool swapBlueRed;
@@ -47,7 +54,15 @@ struct ClockwiseParams
     uint8_t displayRotation;
     uint8_t driver;
     uint32_t i2cSpeed;
-    uint8_t E_pin; 
+    uint8_t E_pin;
+    // Multi-clockface
+    uint8_t  clockfaceIndex;   // 0-based active face
+    String   faceControl;      // bitmask string e.g. "1111111" (1 bit per face)
+    uint8_t  autoChange;       // 0=off, 1=sequence, 2=random
+    // Multi-canvas slots
+    uint8_t  canvasCount;      // how many canvas slots are configured (0-5)
+    String   canvasSlotServer[5];
+    String   canvasSlotFile[5]; 
 
     ClockwiseParams() {
         preferences.begin("clockwise", false); 
@@ -80,6 +95,14 @@ struct ClockwiseParams
         preferences.putUInt(PREF_DRIVER, driver);
         preferences.putUInt(PREF_I2CSPEED, i2cSpeed);
         preferences.putUInt(PREF_E_PIN, E_pin);
+        preferences.putUInt(PREF_CLOCKFACE_INDEX, clockfaceIndex);
+        preferences.putString(PREF_FACE_CONTROL, faceControl);
+        preferences.putUInt(PREF_AUTO_CHANGE, autoChange);
+        preferences.putUInt(PREF_CANVAS_COUNT, canvasCount);
+        for (uint8_t i = 0; i < 5; i++) {
+            preferences.putString((String("canvasSrv_") + i).c_str(), canvasSlotServer[i]);
+            preferences.putString((String("canvasFile_") + i).c_str(), canvasSlotFile[i]);
+        }
     }
 
     void load()
@@ -102,6 +125,14 @@ struct ClockwiseParams
         driver = preferences.getUInt(PREF_DRIVER, 0);
         i2cSpeed = preferences.getUInt(PREF_I2CSPEED, (uint32_t)8000000);
         E_pin = preferences.getUInt(PREF_E_PIN, 18);
+        clockfaceIndex = preferences.getUInt(PREF_CLOCKFACE_INDEX, 0);
+        faceControl = preferences.getString(PREF_FACE_CONTROL, "1111111");  // all 7 enabled by default
+        autoChange = preferences.getUInt(PREF_AUTO_CHANGE, 0);
+        canvasCount = preferences.getUInt(PREF_CANVAS_COUNT, 0);
+        for (uint8_t i = 0; i < 5; i++) {
+            canvasSlotServer[i] = preferences.getString((String("canvasSrv_") + i).c_str(), "");
+            canvasSlotFile[i]   = preferences.getString((String("canvasFile_") + i).c_str(), "");
+        }
     }
 
 };

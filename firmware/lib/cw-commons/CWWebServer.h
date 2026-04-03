@@ -135,6 +135,21 @@ struct ClockwiseWebServer
         ClockwiseParams::getInstance()->i2cSpeed = value.toInt();
       }  else if (key == ClockwiseParams::getInstance()->PREF_E_PIN) {
         ClockwiseParams::getInstance()->E_pin = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_CLOCKFACE_INDEX) {
+        ClockwiseParams::getInstance()->clockfaceIndex = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_FACE_CONTROL) {
+        ClockwiseParams::getInstance()->faceControl = value;
+      } else if (key == ClockwiseParams::getInstance()->PREF_AUTO_CHANGE) {
+        ClockwiseParams::getInstance()->autoChange = value.toInt();
+      } else if (key == ClockwiseParams::getInstance()->PREF_CANVAS_COUNT) {
+        uint8_t count = value.toInt();
+        if (count <= 5) ClockwiseParams::getInstance()->canvasCount = count;
+      } else if (key.startsWith("canvasSrv_")) {
+        uint8_t slot = key.substring(10).toInt();
+        if (slot < 5) ClockwiseParams::getInstance()->canvasSlotServer[slot] = value;
+      } else if (key.startsWith("canvasFile_")) {
+        uint8_t slot = key.substring(11).toInt();
+        if (slot < 5) ClockwiseParams::getInstance()->canvasSlotFile[slot] = value;
       }
       ClockwiseParams::getInstance()->save();
       client.println("HTTP/1.0 204 No Content");
@@ -175,6 +190,16 @@ struct ClockwiseWebServer
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_DRIVER, ClockwiseParams::getInstance()->driver);
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_I2CSPEED, ClockwiseParams::getInstance()->i2cSpeed);
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_E_PIN, ClockwiseParams::getInstance()->E_pin);
+    // Multi-clockface dispatcher
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_CLOCKFACE_INDEX, ClockwiseParams::getInstance()->clockfaceIndex);
+    client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_FACE_CONTROL, ClockwiseParams::getInstance()->faceControl.c_str());
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_AUTO_CHANGE, ClockwiseParams::getInstance()->autoChange);
+    // Canvas slots
+    client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_CANVAS_COUNT, ClockwiseParams::getInstance()->canvasCount);
+    for (uint8_t i = 0; i < 5; i++) {
+      client.printf(HEADER_TEMPLATE_S, (String("canvasSrv_") + i).c_str(), ClockwiseParams::getInstance()->canvasSlotServer[i].c_str());
+      client.printf(HEADER_TEMPLATE_S, (String("canvasFile_") + i).c_str(), ClockwiseParams::getInstance()->canvasSlotFile[i].c_str());
+    }
 
     client.printf(HEADER_TEMPLATE_S, "CW_FW_VERSION", CW_FW_VERSION);
     client.printf(HEADER_TEMPLATE_S, "CW_FW_NAME", CW_FW_NAME);
