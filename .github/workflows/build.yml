@@ -19,8 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         idf_version:
-          - v4.4.7   # current stable used by OG Clockwise
-          - v5.2.1   # latest stable
+          - v4.4.7   # IDF v4.4.x required by arduino-esp32 component
 
     steps:
       - name: Checkout repo
@@ -36,7 +35,7 @@ jobs:
           command: idf.py build
 
       - name: Upload firmware artifact
-        if: github.ref == 'refs/heads/main' && matrix.idf_version == 'v4.4.7'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: clockwise-paradise-firmware
