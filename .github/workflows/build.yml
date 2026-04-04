@@ -60,13 +60,20 @@ jobs:
         run: |
           sudo apt-get install -y cmake ninja-build
 
-      - name: Build and run native tests
+      - name: Check for native tests
+        id: check_tests
         run: |
-          if [ -d "firmware/test/test_native" ]; then
-            cd firmware/test/test_native
-            cmake -B build -DCMAKE_BUILD_TYPE=Debug
-            cmake --build build
-            ./build/test_native || true
+          if [ -d "firmware/test/test_native" ] && [ -f "firmware/test/test_native/CMakeLists.txt" ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
           else
-            echo "No native tests found — skipping"
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+            echo "No native tests directory found — skipping"
           fi
+
+      - name: Build and run native tests
+        if: steps.check_tests.outputs.has_tests == 'true'
+        run: |
+          cd firmware/test/test_native
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build
+          ./build/test_native
