@@ -1,0 +1,20 @@
+{
+  "name": "BigClock",
+  "version": 1,
+  "author": "Starlord-8bit",
+  "bgColor": 0,
+  "delay": 1000,
+  "setup": [
+    {
+      "type": "datetime",
+      "content": "H:i",
+      "font": "square",
+      "fgColor": 16936,
+      "bgColor": 0,
+      "x": 4,
+      "y": 32
+    }
+  ],
+  "sprites": [],
+  "loop": []
+}

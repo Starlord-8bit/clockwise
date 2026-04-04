@@ -119,6 +119,30 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
           property: "ldrPin"
         },
         {
+          title: "Night Strategy",
+          description: "What happens during the configured night window (see Night Schedule).",
+          formInput: "<select name='nightMode' id='nightMode'><option value='0'" + (settings.nightmode == 0 ? " selected='selected'" : "") + ">Nothing</option><option value='1'" + (settings.nightmode == 1 ? " selected='selected'" : "") + ">Turn off display</option><option value='2'" + (settings.nightmode == 2 ? " selected='selected'" : "") + ">Big clock</option></select>",
+          icon: "fa-moon-o",
+          save: "updatePreference('nightMode', nightMode.value)",
+          property: "nightMode"
+        },
+        {
+          title: "Night Schedule",
+          description: "Night window start and end time. Used by Night Strategy (when not set to Nothing).",
+          formInput: "Start: <input id='nightStartH' class='w3-input w3-light-grey w3-cell' style='width:60px;' type='number' min='0' max='23' value='" + settings.nightstarth + "'> h <input id='nightStartM' class='w3-input w3-light-grey w3-cell' style='width:60px;' type='number' min='0' max='59' value='" + settings.nightstartm + "'> m<br/>End: <input id='nightEndH' class='w3-input w3-light-grey w3-cell' style='width:60px;' type='number' min='0' max='23' value='" + settings.nightendh + "'> h <input id='nightEndM' class='w3-input w3-light-grey w3-cell' style='width:60px;' type='number' min='0' max='59' value='" + settings.nightendm + "'> m",
+          icon: "fa-clock-o",
+          save: "updatePreference('nightStartH', nightStartH.value); updatePreference('nightStartM', nightStartM.value); updatePreference('nightEndH', nightEndH.value); updatePreference('nightEndM', nightEndM.value)",
+          property: "nightSchedule"
+        },
+        {
+          title: "Big Clock Settings",
+          description: "Settings for the Big Clock night strategy. Night Level controls brightness (1=dim, 5=bright). Color is an RGB565 value — <a href='https://rgbcolorpicker.com/565' target='_blank'>pick one here</a>.",
+          formInput: "Brightness level (1-5): <input id='nightLevel' class='w3-input w3-light-grey' type='number' min='1' max='5' value='" + settings.nightlevel + "'><br/>Digit color (RGB565): <input id='superColor' class='w3-input w3-light-grey' type='number' min='0' max='65535' value='" + settings.supercolor + "'>",
+          icon: "fa-adjust",
+          save: "updatePreference('nightLevel', nightLevel.value); updatePreference('superColor', superColor.value)",
+          property: "bigClockSettings"
+        },
+        {
           title: "[Canvas] Description file",
           description: "Name of the description file to be rendered without extension.",
           formInput: "<input id='descFile' class='w3-input w3-light-grey' name='descFile' type='text' placeholder='Description File' value='" + settings.canvasfile + "'>",

@@ -26,6 +26,59 @@ bool autoBrightEnabled;
 long autoBrightMillis = 0;
 uint8_t currentBrightSlot = -1;
 
+// Night mode state
+bool nightModeActive = false;
+int8_t savedClockface = -1;  // face index saved when night mode activates
+
+/**
+ * Returns true if current time falls inside configured night window.
+ * Handles midnight-wrapping windows (e.g. 22:00-07:00).
+ */
+bool isNightTime() {
+  auto* p = ClockwiseParams::getInstance();
+  int nowMins   = cwDateTime.getHours() * 60 + cwDateTime.getMinutes();
+  int startMins = p->nightStartH * 60 + p->nightStartM;
+  int endMins   = p->nightEndH   * 60 + p->nightEndM;
+  if (startMins < endMins) return nowMins >= startMins && nowMins < endMins;
+  return nowMins >= startMins || nowMins < endMins;  // wraps midnight
+}
+
+void nightModeCheck() {
+  auto* p = ClockwiseParams::getInstance();
+  if (p->nightMode == 0) return;  // nothing to do
+
+  bool inNight = isNightTime();
+
+  if (inNight && !nightModeActive) {
+    // Night window just started
+    nightModeActive = true;
+    if (p->nightMode == 1) {
+      // Turn display off
+      dma_display->setBrightness8(0);
+    } else if (p->nightMode == 2) {
+      // Switch to big clock Canvas face
+      // Apply night brightness (level 1-5 mapped to 0-255)
+      uint8_t bright = map(p->nightLevel, 1, 5, 8, 64);
+      dma_display->setBrightness8(bright);
+      // We don't have dispatcher here (single-clockface build) so switch
+      // by patching canvasServer/canvasFile and restarting the clockface.
+      // When built with multi-clockface dispatcher this would use setIndex().
+      savedClockface = -1;  // signal that we switched
+      ClockwiseParams::getInstance()->canvasServer = p->bigclockServer;
+      ClockwiseParams::getInstance()->canvasFile   = p->bigclockFile;
+      clockface = new Clockface(dma_display);
+      if (wifi.connectionSucessfulOnce) clockface->setup(&cwDateTime);
+    }
+  } else if (!inNight && nightModeActive) {
+    // Night window just ended - restore normal operation
+    nightModeActive = false;
+    p->load();  // reload original canvasServer/canvasFile from NVS
+    dma_display->setBrightness8(p->displayBright);
+    clockface = new Clockface(dma_display);
+    if (wifi.connectionSucessfulOnce) clockface->setup(&cwDateTime);
+  }
+}
+
 bool isValidI2SSpeed(uint32_t speed) {
   return speed == 8000000 || speed == 16000000 || speed == 20000000;
 }
@@ -159,4 +212,5 @@ void loop()
   }
 
   automaticBrightControl();
+  nightModeCheck();
 }
