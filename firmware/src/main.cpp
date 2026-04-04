@@ -36,7 +36,7 @@ int8_t savedClockface = -1;  // face index saved when night mode activates
  */
 bool isNightTime() {
   auto* p = ClockwiseParams::getInstance();
-  int nowMins   = cwDateTime.getHours() * 60 + cwDateTime.getMinutes();
+  int nowMins   = cwDateTime.getHour() * 60 + cwDateTime.getMinute();
   int startMins = p->nightStartH * 60 + p->nightStartM;
   int endMins   = p->nightEndH   * 60 + p->nightEndM;
   if (startMins < endMins) return nowMins >= startMins && nowMins < endMins;
