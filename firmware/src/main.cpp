@@ -26,6 +26,32 @@ bool autoBrightEnabled;
 long autoBrightMillis = 0;
 uint8_t currentBrightSlot = -1;
 
+// Uptime counter
+int lastUptimeDay = -1;
+
+void uptimeCheck() {
+  int today = cwDateTime.getDay();
+  if (lastUptimeDay == -1) { lastUptimeDay = today; return; }
+  if (today != lastUptimeDay) {
+    lastUptimeDay = today;
+    ClockwiseParams::getInstance()->totalDays++;
+    ClockwiseParams::getInstance()->save();
+  }
+}
+
+// Web server watchdog: restart web server if it stops responding
+// (fixes config page freeze after prolonged operation — v2.1 parity)
+long lastWebServerMillis = 0;
+#define WEB_SERVER_WATCHDOG_MS 300000  // 5 minutes
+
+void webServerWatchdog() {
+  if (millis() - lastWebServerMillis > WEB_SERVER_WATCHDOG_MS) {
+    lastWebServerMillis = millis();
+    ClockwiseWebServer::getInstance()->stopWebServer();
+    ClockwiseWebServer::getInstance()->startWebServer();
+  }
+}
+
 bool isValidI2SSpeed(uint32_t speed) {
   return speed == 8000000 || speed == 16000000 || speed == 20000000;
 }
@@ -151,11 +177,13 @@ void loop()
   {
     ClockwiseWebServer::getInstance()->handleHttpRequest();
     ezt::events();
+    webServerWatchdog();
   }
 
   if (wifi.connectionSucessfulOnce)
   {
     clockface->update();
+    uptimeCheck();
   }
 
   automaticBrightControl();

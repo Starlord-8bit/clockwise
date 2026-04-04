@@ -200,7 +200,7 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
       })
 
       document.getElementById("ssid").innerHTML = "<i class='fa fa-wifi'></i> " + settings.wifissid
-      document.getElementById("fw-version").innerHTML = "<i class='fa fa-code-fork'></i> Firmware v" + settings.cw_fw_version
+      document.getElementById("fw-version").innerHTML = "<i class='fa fa-code-fork'></i> Firmware v" + settings.cw_fw_version + " &nbsp;|&nbsp; <i class='fa fa-clock-o'></i> Running " + settings.totaldays + " day" + (settings.totaldays == 1 ? "" : "s")
     }
 
     function updatePreference(key, value) {

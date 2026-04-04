@@ -28,7 +28,9 @@ struct ClockwiseParams
     const char* const PREF_DISPLAY_ROTATION = "displayRotation";
     const char* const PREF_DRIVER = "driver";
     const char* const PREF_I2CSPEED = "i2cSpeed";
-    const char* const PREF_E_PIN = "E_pin";    
+    const char* const PREF_E_PIN = "E_pin";
+    // Uptime counter (incremented daily, persisted to NVS)
+    const char* const PREF_TOTAL_DAYS   = "totalDays";   // lifetime days counter    
 
     bool swapBlueGreen;
     bool swapBlueRed;
@@ -47,7 +49,8 @@ struct ClockwiseParams
     uint8_t displayRotation;
     uint8_t driver;
     uint32_t i2cSpeed;
-    uint8_t E_pin; 
+    uint8_t E_pin;
+    uint32_t totalDays;   // lifetime uptime counter in days 
 
     ClockwiseParams() {
         preferences.begin("clockwise", false); 
@@ -80,6 +83,7 @@ struct ClockwiseParams
         preferences.putUInt(PREF_DRIVER, driver);
         preferences.putUInt(PREF_I2CSPEED, i2cSpeed);
         preferences.putUInt(PREF_E_PIN, E_pin);
+        preferences.putUInt(PREF_TOTAL_DAYS, totalDays);
     }
 
     void load()
@@ -102,6 +106,7 @@ struct ClockwiseParams
         driver = preferences.getUInt(PREF_DRIVER, 0);
         i2cSpeed = preferences.getUInt(PREF_I2CSPEED, (uint32_t)8000000);
         E_pin = preferences.getUInt(PREF_E_PIN, 18);
+        totalDays = preferences.getUInt(PREF_TOTAL_DAYS, 0);
     }
 
 };
