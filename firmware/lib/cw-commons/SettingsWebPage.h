@@ -54,6 +54,22 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
       console.log(settings);
       const cards = [
         {
+          title: "Clockface",
+          description: "Select which clockface to display. Canvas clockface supports runtime JSON themes from a local server.",
+          formInput: "<select name='clockFace' id='clockFace'><option value='1'" + (settings.clockface_name == 'cw-cf-0x01' ? " selected='selected'" : "") + ">Super Mario</option><option value='2'" + (settings.clockface_name == 'cw-cf-0x02' ? " selected='selected'" : "") + ">Time in Words</option><option value='3'" + (settings.clockface_name == 'cw-cf-0x03' ? " selected='selected'" : "") + ">World Map</option><option value='4'" + (settings.clockface_name == 'cw-cf-0x04' ? " selected='selected'" : "") + ">Castlevania</option><option value='5'" + (settings.clockface_name == 'cw-cf-0x05' ? " selected='selected'" : "") + ">Pac-Man</option><option value='6'" + (settings.clockface_name == 'cw-cf-0x06' ? " selected='selected'" : "") + ">Pokedex</option><option value='7'" + (settings.clockface_name == 'cw-cf-0x07' ? " selected='selected'" : "") + ">Canvas</option></select>",
+          icon: "fa-television",
+          save: "updatePreference('clockFaceIndex', parseInt(clockFace.value) - 1)",
+          property: "clockFaceIndex"
+        },
+        {
+          title: "Auto-change Clockface",
+          description: "Automatically change the clockface at midnight each day.",
+          formInput: "<select name='autoChange' id='autoChange'><option value='0'" + (settings.autochange == 0 ? " selected='selected'" : "") + ">Off</option><option value='1'" + (settings.autochange == 1 ? " selected='selected'" : "") + ">Sequence</option><option value='2'" + (settings.autochange == 2 ? " selected='selected'" : "") + ">Random</option></select>",
+          icon: "fa-exchange",
+          save: "updatePreference('autoChange', autoChange.value)",
+          property: "autoChange"
+        },
+        {
           title: "Display Bright",
           description: "0 = dark (display off) / 255 = super bright | Value: <strong><output id='rangevalue'>" + settings.displaybright + "</output></strong>",
           formInput: "<input class='w3-input w3-border' type='range' min='0' max='255' value='" + settings.displaybright + "' class='slider' id='bright' oninput='rangevalue.value=value'>",
