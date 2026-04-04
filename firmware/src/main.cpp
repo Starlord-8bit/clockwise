@@ -31,8 +31,8 @@ uint8_t currentBrightSlot = -1;
  * Night window wraps midnight: e.g. 22:00–07:00 is correctly handled.
  */
 bool isNightTime() {
-  int h = cwDateTime.getHours();
-  int m = cwDateTime.getMinutes();
+  int h = cwDateTime.getHour();
+  int m = cwDateTime.getMinute();
   int nowMins  = h * 60 + m;
   auto* p = ClockwiseParams::getInstance();
   int startMins = p->nightStartH * 60 + p->nightStartM;
