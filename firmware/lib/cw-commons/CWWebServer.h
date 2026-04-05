@@ -6,6 +6,15 @@
 #include "StatusController.h"
 #include "SettingsWebPage.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "esp_ota_ops.h"
+#include "esp_partition.h"
+#ifdef __cplusplus
+}
+#endif
+
 #ifndef CLOCKFACE_NAME
   #define CLOCKFACE_NAME "UNKNOWN"
 #endif
@@ -41,45 +50,184 @@ struct ClockwiseWebServer
     if (force_restart)
       StatusController::getInstance()->forceRestart();
 
-
     WiFiClient client = server.available();
-    if (client)
-    {
-      StatusController::getInstance()->blink_led(100, 1);
+    if (!client) return;
 
-      while (client.connected())
-      {
-        if (client.available())
-        {
-          char c = client.read();
-          httpBuffer.concat(c);
+    StatusController::getInstance()->blink_led(100, 1);
 
-          if (c == '\n')
-          {
-            uint8_t method_pos = httpBuffer.indexOf(' ');
-            uint8_t path_pos = httpBuffer.indexOf(' ', method_pos + 1);
+    // --- Parse all request headers ---
+    String method, path, key, value;
+    int contentLength = 0;
+    String contentType = "";
+    bool headersComplete = false;
 
-            String method = httpBuffer.substring(0, method_pos);
-            String path = httpBuffer.substring(method_pos + 1, path_pos);
-            String key = "";
-            String value = "";
+    unsigned long deadline = millis() + 5000;  // 5 s header timeout
+    while (client.connected() && millis() < deadline) {
+      if (!client.available()) { delay(1); continue; }
 
-            if (path.indexOf('?') > 0)
-            {
-              key = path.substring(path.indexOf('?') + 1, path.indexOf('='));
-              value = path.substring(path.indexOf('=') + 1);
-              path = path.substring(0, path.indexOf('?'));
-            }
+      String line = client.readStringUntil('\n');
+      line.trim();
 
-            processRequest(client, method, path, key, value);
-            httpBuffer = "";
-            break;
-          }
+      if (method.isEmpty() && line.length() > 0) {
+        // First line: "METHOD /path HTTP/1.x"
+        int s1 = line.indexOf(' ');
+        int s2 = line.indexOf(' ', s1 + 1);
+        method = line.substring(0, s1);
+        path   = line.substring(s1 + 1, s2);
+        if (path.indexOf('?') > 0) {
+          String qs = path.substring(path.indexOf('?') + 1);
+          key   = qs.substring(0, qs.indexOf('='));
+          value = qs.substring(qs.indexOf('=') + 1);
+          path  = path.substring(0, path.indexOf('?'));
+        }
+      } else if (line.length() == 0) {
+        headersComplete = true;
+        break;  // blank line = end of headers
+      } else {
+        // Parse headers we care about
+        String lowerLine = line;
+        lowerLine.toLowerCase();
+        if (lowerLine.startsWith("content-length:")) {
+          contentLength = line.substring(15).toInt();
+        } else if (lowerLine.startsWith("content-type:")) {
+          contentType = line.substring(13);
+          contentType.trim();
         }
       }
-      delay(1);
-      client.stop();
     }
+
+    if (!headersComplete) { client.stop(); return; }
+
+    // --- Binary upload: POST /ota/upload ---
+    // Streams body bytes directly into ESP OTA write — never buffers full file in RAM.
+    if (method == "POST" && path == "/ota/upload") {
+      handleOtaUpload(client, contentLength);
+      return;
+    }
+
+    // --- All other routes (no body needed) ---
+    processRequest(client, method, path, key, value);
+    delay(1);
+    client.stop();
+  }
+
+  /**
+   * POST /ota/upload — stream a raw .bin directly into the OTA partition.
+   *
+   * Accepts a raw binary body (Content-Type: application/octet-stream).
+   * Streams bytes directly to the OTA write API — the full binary is never
+   * held in RAM. Compatible with both merged (0x0000) and app-only binaries.
+   *
+   * From the web UI: <input type="file"> + fetch() with body=file.
+   * From curl / AI automation:
+   *   curl -X POST http://<ip>/ota/upload \
+   *        -H 'Content-Type: application/octet-stream' \
+   *        --data-binary @clockwise-paradise.bin
+   *
+   * Returns JSON: {"status":"ok"} on success (then reboots),
+   *               {"status":"error","message":"..."}  on failure.
+   */
+  void handleOtaUpload(WiFiClient& client, int contentLength) {
+    if (contentLength <= 0) {
+      client.println("HTTP/1.0 400 Bad Request");
+      client.println("Content-Type: application/json");
+      client.println();
+      client.print("{\"status\":\"error\",\"message\":\"Missing Content-Length\"}");
+      client.flush(); client.stop();
+      return;
+    }
+
+    Serial.printf("[OTA-Upload] Starting, expecting %d bytes\n", contentLength);
+    StatusController::getInstance()->printCenter("Uploading...", 32);
+
+    const esp_partition_t* update_partition = esp_ota_get_next_update_partition(nullptr);
+    if (!update_partition) {
+      client.println("HTTP/1.0 500 Internal Server Error");
+      client.println("Content-Type: application/json");
+      client.println();
+      client.print("{\"status\":\"error\",\"message\":\"No OTA partition found\"}");
+      client.flush(); client.stop();
+      return;
+    }
+
+    esp_ota_handle_t ota_handle;
+    esp_err_t err = esp_ota_begin(update_partition, contentLength, &ota_handle);
+    if (err != ESP_OK) {
+      client.println("HTTP/1.0 500 Internal Server Error");
+      client.println("Content-Type: application/json");
+      client.println();
+      client.printf("{\"status\":\"error\",\"message\":\"esp_ota_begin: %s\"}", esp_err_to_name(err));
+      client.flush(); client.stop();
+      return;
+    }
+
+    // Stream body into OTA write — 4KB chunks
+    static uint8_t buf[4096];
+    int remaining = contentLength;
+    bool write_error = false;
+    unsigned long last_activity = millis();
+
+    while (remaining > 0 && client.connected()) {
+      int to_read = min(remaining, (int)sizeof(buf));
+      int got = 0;
+      unsigned long chunk_deadline = millis() + 10000;
+      while (got < to_read && millis() < chunk_deadline) {
+        int avail = client.available();
+        if (avail > 0) {
+          int r = client.read(buf + got, min(avail, to_read - got));
+          if (r > 0) { got += r; last_activity = millis(); }
+        } else {
+          delay(1);
+        }
+      }
+      if (got == 0) { write_error = true; break; }  // timeout
+
+      err = esp_ota_write(ota_handle, buf, got);
+      if (err != ESP_OK) { write_error = true; break; }
+      remaining -= got;
+      Serial.printf("[OTA-Upload] %d/%d bytes\n", contentLength - remaining, contentLength);
+    }
+
+    if (write_error || remaining != 0) {
+      esp_ota_abort(ota_handle);
+      client.println("HTTP/1.0 500 Internal Server Error");
+      client.println("Content-Type: application/json");
+      client.println();
+      client.printf("{\"status\":\"error\",\"message\":\"%s\"}",
+                    write_error ? esp_err_to_name(err) : "Upload incomplete");
+      client.flush(); client.stop();
+      return;
+    }
+
+    err = esp_ota_end(ota_handle);
+    if (err != ESP_OK) {
+      client.println("HTTP/1.0 500 Internal Server Error");
+      client.println("Content-Type: application/json");
+      client.println();
+      client.printf("{\"status\":\"error\",\"message\":\"esp_ota_end: %s\"}", esp_err_to_name(err));
+      client.flush(); client.stop();
+      return;
+    }
+
+    err = esp_ota_set_boot_partition(update_partition);
+    if (err != ESP_OK) {
+      client.println("HTTP/1.0 500 Internal Server Error");
+      client.println("Content-Type: application/json");
+      client.println();
+      client.printf("{\"status\":\"error\",\"message\":\"esp_ota_set_boot: %s\"}", esp_err_to_name(err));
+      client.flush(); client.stop();
+      return;
+    }
+
+    Serial.println("[OTA-Upload] Success — rebooting");
+    client.println("HTTP/1.0 200 OK");
+    client.println("Content-Type: application/json");
+    client.println();
+    client.print("{\"status\":\"ok\",\"message\":\"Upload complete, rebooting\"}");
+    client.flush();
+    client.stop();
+    delay(500);
+    esp_restart();
   }
 
   void processRequest(WiFiClient client, String method, String path, String key, String value)

@@ -25,6 +25,8 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
     <div id="fw-version" class="w3-bar-item w3-black w3-hover-red"></div>
     <div id="ssid" class="w3-bar-item w3-hover-blue w3-right"></div>
     <div class="w3-bar-item w3-button w3-hover-green w3-right" onclick="checkUpdate()"><i class='fa fa-refresh'></i> Check Update</div>
+    <div class="w3-bar-item w3-button w3-hover-red w3-right" onclick="document.getElementById('uploadBinInput').click()"><i class='fa fa-upload'></i> Upload .bin</div>
+    <input type='file' id='uploadBinInput' accept='.bin' style='display:none' onchange='uploadBin(this)'>
     <div class="w3-bar-item w3-button w3-hover-teal w3-right" onclick="backupConfig()"><i class='fa fa-download'></i> Backup</div>
     <div class="w3-bar-item w3-button w3-hover-orange w3-right" onclick="document.getElementById('restoreInput').click()"><i class='fa fa-upload'></i> Restore</div>
     <input type='file' id='restoreInput' accept='.json' style='display:none' onchange='restoreConfig(this)'>
@@ -313,6 +315,29 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
       requestGet("/get", (req) => {
         createCards(splitHeaders(req));
       });  
+    }
+
+    function uploadBin(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById('status');
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = "<i class='fa fa-spinner fa-spin'></i> Uploading " + file.name + " (" + (file.size/1024).toFixed(0) + " KB)...";
+      fetch('/ota/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream', 'Content-Length': file.size },
+        body: file
+      }).then(r => r.json()).then(data => {
+        if (data.status === 'ok') {
+          statusEl.innerHTML = "<i class='fa fa-check'></i> Upload complete! Rebooting... reconnect in ~15s";
+        } else {
+          statusEl.innerHTML = "<i class='fa fa-times'></i> Upload failed: " + (data.message || 'unknown error');
+        }
+      }).catch(err => {
+        // Device reboots mid-response which may cause a network error — treat as success
+        statusEl.innerHTML = "<i class='fa fa-check'></i> Rebooting... reconnect in ~15s";
+      });
+      input.value = '';
     }
 
     function checkUpdate() {
