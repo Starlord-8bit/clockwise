@@ -61,16 +61,15 @@ public:
         String broker_uri = "mqtt://" + p->mqttBroker + ":" + String(p->mqttPort);
         String avail_topic = _base_topic + "/availability";
 
+        // IDF v4.4.x flat config struct (v5.x uses nested broker/credentials/session)
         esp_mqtt_client_config_t cfg = {};
-        cfg.broker.address.uri  = broker_uri.c_str();
-        if (!p->mqttUser.isEmpty())
-            cfg.credentials.username = p->mqttUser.c_str();
-        if (!p->mqttPass.isEmpty())
-            cfg.credentials.authentication.password = p->mqttPass.c_str();
-        cfg.session.last_will.topic  = avail_topic.c_str();
-        cfg.session.last_will.msg    = "offline";
-        cfg.session.last_will.qos    = 1;
-        cfg.session.last_will.retain = 1;
+        cfg.uri          = broker_uri.c_str();
+        cfg.username     = p->mqttUser.isEmpty() ? nullptr : p->mqttUser.c_str();
+        cfg.password     = p->mqttPass.isEmpty() ? nullptr : p->mqttPass.c_str();
+        cfg.lwt_topic    = avail_topic.c_str();
+        cfg.lwt_msg      = "offline";
+        cfg.lwt_qos      = 1;
+        cfg.lwt_retain   = 1;
 
         _client = esp_mqtt_client_init(&cfg);
         esp_mqtt_client_register_event(_client, MQTT_EVENT_ANY, _event_handler, this);
