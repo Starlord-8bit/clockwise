@@ -49,57 +49,63 @@ struct ClockwiseWebServer
 
     StatusController::getInstance()->blink_led(100, 1);
 
-    // --- Parse all request headers ---
-    String method, path, key, value;
-    int contentLength = 0;
-    String contentType = "";
-    bool headersComplete = false;
-
-    unsigned long deadline = millis() + 5000;  // 5 s header timeout
+    // --- Read first line only (method + path) ---
+    // Original fast char-by-char approach: minimal blocking.
+    String firstLine = "";
+    unsigned long deadline = millis() + 500;
     while (client.connected() && millis() < deadline) {
       if (!client.available()) { delay(1); continue; }
+      char c = client.read();
+      if (c == '\n') break;
+      firstLine += c;
+    }
+    firstLine.trim();
+    if (firstLine.isEmpty()) { client.stop(); return; }
 
-      String line = client.readStringUntil('\n');
-      line.trim();
-
-      if (method.isEmpty() && line.length() > 0) {
-        // First line: "METHOD /path HTTP/1.x"
-        int s1 = line.indexOf(' ');
-        int s2 = line.indexOf(' ', s1 + 1);
-        method = line.substring(0, s1);
-        path   = line.substring(s1 + 1, s2);
-        if (path.indexOf('?') > 0) {
-          String qs = path.substring(path.indexOf('?') + 1);
-          key   = qs.substring(0, qs.indexOf('='));
-          value = qs.substring(qs.indexOf('=') + 1);
-          path  = path.substring(0, path.indexOf('?'));
-        }
-      } else if (line.length() == 0) {
-        headersComplete = true;
-        break;  // blank line = end of headers
-      } else {
-        // Parse headers we care about
-        String lowerLine = line;
-        lowerLine.toLowerCase();
-        if (lowerLine.startsWith("content-length:")) {
-          contentLength = line.substring(15).toInt();
-        } else if (lowerLine.startsWith("content-type:")) {
-          contentType = line.substring(13);
-          contentType.trim();
-        }
-      }
+    // Parse method + path from first line
+    int s1 = firstLine.indexOf(' ');
+    int s2 = firstLine.indexOf(' ', s1 + 1);
+    String method = firstLine.substring(0, s1);
+    String path   = firstLine.substring(s1 + 1, s2);
+    String key = "", value = "";
+    if (path.indexOf('?') > 0) {
+      String qs = path.substring(path.indexOf('?') + 1);
+      key   = qs.substring(0, qs.indexOf('='));
+      value = qs.substring(qs.indexOf('=') + 1);
+      path  = path.substring(0, path.indexOf('?'));
     }
 
-    if (!headersComplete) { client.stop(); return; }
-
-    // --- Binary upload: POST /ota/upload ---
-    // Streams body bytes directly into ESP OTA write — never buffers full file in RAM.
+    // --- Binary upload: read remaining headers for Content-Length ---
+    // Only done for /ota/upload — all other routes skip the body.
     if (method == "POST" && path == "/ota/upload") {
+      int contentLength = 0;
+      // Drain remaining headers, extract Content-Length
+      client.setTimeout(200);
+      unsigned long hdr_deadline = millis() + 2000;
+      while (client.connected() && millis() < hdr_deadline) {
+        String line = client.readStringUntil('\n');
+        line.trim();
+        if (line.isEmpty()) break;  // blank line = end of headers
+        String lower = line; lower.toLowerCase();
+        if (lower.startsWith("content-length:")) {
+          contentLength = line.substring(15).toInt();
+        }
+      }
       handleOtaUpload(client, contentLength);
       return;
     }
 
-    // --- All other routes (no body needed) ---
+    // --- All other routes: drain remaining headers quickly then process ---
+    {
+      client.setTimeout(100);
+      unsigned long hdr_deadline = millis() + 500;
+      while (client.connected() && millis() < hdr_deadline) {
+        String line = client.readStringUntil('\n');
+        line.trim();
+        if (line.isEmpty()) break;
+      }
+    }
+
     processRequest(client, method, path, key, value);
     delay(1);
     client.stop();
