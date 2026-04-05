@@ -194,8 +194,8 @@ void setup()
   displaySetup(p->ledColorOrder, p->reversePhase, p->displayBright,
                p->displayRotation, p->driver, p->i2cSpeed, p->E_pin);
 
-  // v3: initialise from saved clockface index
-  CWDriverRegistry::switchTo(&currentFace, p->clockFaceIndex, dma_display, &cwDateTime);
+  // v3: note target clockface — setup() called after cwDateTime is ready
+  CWDriverRegistry::get(p->clockFaceIndex); // validate index early
 
   // Wire live-switch callback — instant, no reboot
   ClockwiseWebServer::getInstance()->onClockfaceSwitch = [](uint8_t idx) {
@@ -218,8 +218,8 @@ void setup()
     StatusController::getInstance()->ntpConnecting();
     cwDateTime.begin(p->timeZone.c_str(), p->use24hFormat,
                      p->ntpServer.c_str(), p->manualPosix.c_str());
-    // Re-run setup now that time is available
-    if (currentFace) currentFace->setup(dma_display, &cwDateTime);
+    // Now safe to setup the clockface — cwDateTime is ready
+    CWDriverRegistry::switchTo(&currentFace, p->clockFaceIndex, dma_display, &cwDateTime);
     CWMqtt::getInstance()->begin();  // start MQTT after WiFi + time sync
   }
 }
