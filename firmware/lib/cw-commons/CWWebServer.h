@@ -6,14 +6,8 @@
 #include "StatusController.h"
 #include "SettingsWebPage.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "esp_ota_ops.h"
 #include "esp_partition.h"
-#ifdef __cplusplus
-}
-#endif
 
 #ifndef CLOCKFACE_NAME
   #define CLOCKFACE_NAME "UNKNOWN"
