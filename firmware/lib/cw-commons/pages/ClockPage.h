@@ -23,7 +23,7 @@ inline void cw_sendClockPage(WiFiClient& client) {
           <option value="5">Pokedex</option>
           <option value="6">Canvas</option>
         </select>
-        <div class="hint">⚠ Live-switching not yet implemented — requires reboot to take effect.</div>
+        <div class="hint">Device will reboot automatically after apply (~5s). Clockface selection persists across reboots.</div>
       </div>
     </div>
 
@@ -115,6 +115,7 @@ inline void cw_sendClockPage(WiFiClient& client) {
     var cf = (h['clockface_name']||'').toLowerCase();
     var map={'cw-cf-0x01':0,'cw-cf-0x02':1,'cw-cf-0x03':2,'cw-cf-0x04':3,'cw-cf-0x05':4,'cw-cf-0x06':5,'cw-cf-0x07':6};
     if(map.hasOwnProperty(cf)) $('clockFace').value = String(map[cf]);
+    $('clockFace').dataset.orig = $('clockFace').value;
     $('autoChange').value  = h['autochange']||'0';
     $('use24h').checked    = (h['use24hformat']==='1');
     var bv = h['displaybright']||'50';
@@ -130,7 +131,8 @@ inline void cw_sendClockPage(WiFiClient& client) {
 
   async function applyClock(){
     try{
-      await setKey('clockFaceIndex', $('clockFace').value);
+      // Clockface index triggers auto-reboot — send it last
+      var cfChanged = $('clockFace').value !== $('clockFace').dataset.orig;
       await setKey('autoChange',     $('autoChange').value);
       await setKey('use24hFormat',   $('use24h').checked?1:0);
       await setKey('displayBright',  $('displayBright').value);
@@ -144,7 +146,14 @@ inline void cw_sendClockPage(WiFiClient& client) {
       if($('nightStartM').value!=='') await setKey('nightStartM', $('nightStartM').value);
       if($('nightEndH').value!=='')   await setKey('nightEndH',   $('nightEndH').value);
       if($('nightEndM').value!=='')   await setKey('nightEndM',   $('nightEndM').value);
-      toast('Applied ✓');
+      if(cfChanged){
+        toast('Clockface saved — rebooting in ~3s…');
+        await setKey('clockFaceIndex', $('clockFace').value);
+        // Device will reboot; reload page after ~8s
+        setTimeout(()=>location.reload(), 8000);
+      } else {
+        toast('Applied ✓');
+      }
     } catch(e){ toast('Failed: '+e, false); }
   }
   </script>

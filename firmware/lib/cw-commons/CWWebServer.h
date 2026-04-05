@@ -384,9 +384,12 @@ struct ClockwiseWebServer
       } else if (key == ClockwiseParams::getInstance()->PREF_MQTT_PREFIX) {
         ClockwiseParams::getInstance()->mqttPrefix = value;
       } else if (key == "clockFaceIndex") {
-        // dispatcher index (0-based) maps to clockface
-        ClockwiseParams::getInstance()->autoChange = ClockwiseParams::getInstance()->autoChange; // no-op stub
-        // full dispatcher switching handled at runtime
+        // Save the requested clockface index to NVS.
+        // Since each clockface is a separate compile-time build, a reboot is
+        // needed to actually change what's displayed. We schedule a soft
+        // restart after saving so the user doesn't have to do it manually.
+        ClockwiseParams::getInstance()->clockFaceIndex = value.toInt();
+        force_restart = true; // will trigger on next handleHttpRequest() call
       } else if (key == ClockwiseParams::getInstance()->PREF_BRIGHT_METHOD) {
         ClockwiseParams::getInstance()->brightMethod = value.toInt();
       } else if (key == ClockwiseParams::getInstance()->PREF_NIGHT_START_H) {
@@ -531,6 +534,7 @@ struct ClockwiseWebServer
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_MQTT_PORT, ClockwiseParams::getInstance()->mqttPort);
     client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_MQTT_PREFIX, ClockwiseParams::getInstance()->mqttPrefix.c_str());
 
+    client.printf(HEADER_TEMPLATE_D, "clockfaceIndex", ClockwiseParams::getInstance()->clockFaceIndex);
     client.printf(HEADER_TEMPLATE_S, "CW_FW_VERSION", CW_FW_VERSION);
     client.printf(HEADER_TEMPLATE_S, "CW_FW_NAME", CW_FW_NAME);
     client.printf(HEADER_TEMPLATE_S, "CLOCKFACE_NAME", CLOCKFACE_NAME);

@@ -49,6 +49,7 @@ struct ClockwiseParams
     const char* const PREF_BIGCLOCK_FILE   = "bigclockFile";
     // Uptime counter
     const char* const PREF_TOTAL_DAYS      = "totalDays";
+    const char* const PREF_CLOCKFACE_INDEX  = "clockfaceIdx"; // persisted clockface index (0-based)
     // OTA
     const char* const PREF_OTA_ENABLED    = "otaEnabled";
     const char* const PREF_OTA_OWNER      = "otaOwner";
@@ -110,6 +111,7 @@ struct ClockwiseParams
     String   bigclockFile;
     // Uptime
     uint32_t totalDays;
+    uint8_t  clockFaceIndex; // 0-based persisted clockface selection
     // OTA
     bool     otaEnabled;
     String   otaOwner;
@@ -167,6 +169,7 @@ struct ClockwiseParams
         preferences.putString(PREF_BIGCLOCK_SERVER, bigclockServer);
         preferences.putString(PREF_BIGCLOCK_FILE, bigclockFile);
         preferences.putUInt(PREF_TOTAL_DAYS, totalDays);
+        preferences.putUChar(PREF_CLOCKFACE_INDEX, clockFaceIndex);
         preferences.putBool(PREF_OTA_ENABLED, otaEnabled);
         preferences.putString(PREF_OTA_OWNER, otaOwner);
         preferences.putString(PREF_OTA_REPO, otaRepo);
@@ -219,6 +222,18 @@ struct ClockwiseParams
         bigclockServer = preferences.getString(PREF_BIGCLOCK_SERVER, "raw.githubusercontent.com");
         bigclockFile   = preferences.getString(PREF_BIGCLOCK_FILE, "clockwise-paradise/main/clockfaces/bigclock");
         totalDays     = preferences.getUInt(PREF_TOTAL_DAYS, 0);
+        clockFaceIndex = preferences.getUChar(PREF_CLOCKFACE_INDEX, 0);
+        // Decode any legacy URL-encoded string values (e.g. Europe%2FStockholm -> Europe/Stockholm)
+        // This handles devices that had the bug before v2.4.0
+        if (timeZone.indexOf('%') >= 0) {
+          timeZone.replace("%2F", "/"); timeZone.replace("%2f", "/");
+          timeZone.replace("%20", " "); timeZone.replace("%3A", ":");
+          preferences.putString(PREF_TIME_ZONE, timeZone);
+        }
+        if (ntpServer.indexOf('%') >= 0) {
+          ntpServer.replace("%2F", "/"); ntpServer.replace("%20", " ");
+          preferences.putString(PREF_NTP_SERVER, ntpServer);
+        }
         otaEnabled    = preferences.getBool(PREF_OTA_ENABLED, true);
         otaOwner      = preferences.getString(PREF_OTA_OWNER, "Starlord-8bit");
         otaRepo       = preferences.getString(PREF_OTA_REPO, "clockwise-paradise");
