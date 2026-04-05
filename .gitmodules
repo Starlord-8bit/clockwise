@@ -1,22 +1,22 @@
 [submodule "firmware/clockfaces/cw-cf-0x01"]
 	path = firmware/clockfaces/cw-cf-0x01
-	url = https://github.com/jnthas/cw-cf-0x01.git
+	url = https://github.com/Starlord-8bit/cw-cf-0x01.git
 	shallow = true
 [submodule "firmware/clockfaces/cw-cf-0x02"]
 	path = firmware/clockfaces/cw-cf-0x02
-	url = https://github.com/jnthas/cw-cf-0x02.git
+	url = https://github.com/Starlord-8bit/cw-cf-0x02.git
 	shallow = true
 [submodule "firmware/clockfaces/cw-cf-0x03"]
 	path = firmware/clockfaces/cw-cf-0x03
-	url = https://github.com/jnthas/cw-cf-0x03.git
+	url = https://github.com/Starlord-8bit/cw-cf-0x03.git
 	shallow = true
 [submodule "firmware/clockfaces/cw-cf-0x04"]
 	path = firmware/clockfaces/cw-cf-0x04
-	url = https://github.com/jnthas/cw-cf-0x04
+	url = https://github.com/Starlord-8bit/cw-cf-0x04.git
 	shallow = true
 [submodule "firmware/clockfaces/cw-cf-0x05"]
 	path = firmware/clockfaces/cw-cf-0x05
-	url = https://github.com/jnthas/cw-cf-0x05
+	url = https://github.com/Starlord-8bit/cw-cf-0x05.git
 	shallow = true
 [submodule "components/ezTime"]
 	path = components/ezTime
@@ -44,7 +44,7 @@
 	shallow = true
 [submodule "firmware/clockfaces/cw-cf-0x06"]
 	path = firmware/clockfaces/cw-cf-0x06
-	url = https://github.com/jnthas/cw-cf-0x06.git
+	url = https://github.com/Starlord-8bit/cw-cf-0x06.git
 	shallow = true
 [submodule "components/WiFiManager"]
 	path = components/WiFiManager

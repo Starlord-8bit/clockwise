@@ -30,7 +30,7 @@
 #include <Adafruit_GFX.h>
 #include <IClockface.h>
 
-// Include each namespaced clockface
+// Include each namespaced clockface (component name = cw-cf-0xNN)
 #include <cw-cf-0x01/Clockface.h>
 #include <cw-cf-0x02/Clockface.h>
 #include <cw-cf-0x03/Clockface.h>

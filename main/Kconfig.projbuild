@@ -5,26 +5,9 @@ menu "Clockwise Configuration"
     help
         Some 64x64 HUB75 displays have the green and blue pins reversed. Enable this option to swap these pins.
 
-  choice CLOCKFACE
-      prompt "Clockwise display"
-      default  CLOCKFACE_MARIO
-
-  config CLOCKFACE_MARIO
-    bool "Mario"
-
-  config CLOCKFACE_TIME_IN_WORDS
-    bool "Time in words"
-
-  config CLOCKFACE_WORLDMAP
-    bool "World map"
-
-  config CLOCKFACE_CASTLEVANIA
-    bool "Castlevania"
-
-  config CLOCKFACE_PACMAN
-    bool "Pacman"
-
-
-  endchoice # CLOCKFACE
+  # All clockfaces are compiled in simultaneously via the dispatcher.
+  # The runtime selection is done via CWClockfaceDispatcher (index 0-5).
+  # The individual CONFIG_CLOCKFACE_* guards have been removed from each
+  # cw-cf-0xNN CMakeLists.txt — all source files always compile.
 
 endmenu
