@@ -1,6 +1,7 @@
 #pragma once
 
 #include <WiFi.h>
+#include <functional>
 #include <CWPreferences.h>
 #include <CWOTA.h>
 #include "StatusController.h"
@@ -29,6 +30,12 @@ struct ClockwiseWebServer
 {
   String httpBuffer;
   bool force_restart;
+  uint8_t pending_clockface_index = 255; // 255 = no pending switch
+
+  // Callback set by main.cpp for live clockface switching without reboot.
+  // Signature: void switchClockface(uint8_t index)
+  // If null, falls back to save+reboot.
+  std::function<void(uint8_t)> onClockfaceSwitch = nullptr;
   const char* HEADER_TEMPLATE_D = "X-%s: %d\r\n";
   const char* HEADER_TEMPLATE_S = "X-%s: %s\r\n";
  
@@ -384,12 +391,16 @@ struct ClockwiseWebServer
       } else if (key == ClockwiseParams::getInstance()->PREF_MQTT_PREFIX) {
         ClockwiseParams::getInstance()->mqttPrefix = value;
       } else if (key == "clockFaceIndex") {
-        // Save the requested clockface index to NVS.
-        // Since each clockface is a separate compile-time build, a reboot is
-        // needed to actually change what's displayed. We schedule a soft
-        // restart after saving so the user doesn't have to do it manually.
-        ClockwiseParams::getInstance()->clockFaceIndex = value.toInt();
-        force_restart = true; // will trigger on next handleHttpRequest() call
+        uint8_t idx = (uint8_t)value.toInt();
+        ClockwiseParams::getInstance()->clockFaceIndex = idx;
+        if (onClockfaceSwitch) {
+          // Live runtime switch — no reboot needed
+          onClockfaceSwitch(idx);
+          // Respond before the callback runs (it may block briefly)
+        } else {
+          // Fallback: save + reboot (dispatcher not wired up yet)
+          force_restart = true;
+        }
       } else if (key == ClockwiseParams::getInstance()->PREF_BRIGHT_METHOD) {
         ClockwiseParams::getInstance()->brightMethod = value.toInt();
       } else if (key == ClockwiseParams::getInstance()->PREF_NIGHT_START_H) {

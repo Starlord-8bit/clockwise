@@ -1,8 +1,17 @@
 #include <Arduino.h>
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 
-// Clockface
-#include <Clockface.h>
+// Runtime clockface dispatcher (enabled once namespaced forks are in place)
+// Set CW_DISPATCHER_ENABLED=1 in build flags when all forks are ready.
+#if CW_DISPATCHER_ENABLED
+  #include <CWClockfaceDispatcher.h>
+  IClockface *clockface = nullptr;
+#else
+  // Legacy: single compiled-in clockface
+  #include <Clockface.h>
+  Clockface *clockface = nullptr;
+#endif
+
 // Commons
 #include <WiFiController.h>
 #include <CWDateTime.h>
@@ -17,7 +26,7 @@
 #define ESP32_LED_BUILTIN 2
 
 MatrixPanel_I2S_DMA *dma_display = nullptr;
-Clockface *clockface;
+// clockface pointer declared above in #if block
 WiFiController wifi;
 CWDateTime cwDateTime;
 
@@ -194,7 +203,20 @@ void setup()
   displaySetup(p->ledColorOrder, p->reversePhase, p->displayBright,
                p->displayRotation, p->driver, p->i2cSpeed, p->E_pin);
 
+#if CW_DISPATCHER_ENABLED
+  // Dispatcher: create the saved clockface by index
+  clockface = CWClockfaceDispatcher::create(p->clockFaceIndex, dma_display);
+  if (!clockface) clockface = CWClockfaceDispatcher::create(0, dma_display);
+  // Wire live-switch callback so /set?clockFaceIndex=N works without reboot
+  ClockwiseWebServer::getInstance()->onClockfaceSwitch = [](uint8_t idx) {
+    Serial.printf("[main] Live clockface switch -> index %d\n", idx);
+    clockface = CWClockfaceDispatcher::switchTo(clockface, idx, dma_display, &cwDateTime);
+    ClockwiseParams::getInstance()->clockFaceIndex = idx;
+    ClockwiseParams::getInstance()->save();
+  };
+#else
   clockface = new Clockface(dma_display);
+#endif
 
   // Fixed brightness: apply immediately
   if (p->brightMethod == 2) dma_display->setBrightness8(p->displayBright);
